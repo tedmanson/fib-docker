@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t tedmanson/react-test -f ./client/Dockerfile.dev ./client
+
+scripts:
+  - docker run tedmanson/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t tedmanson/multi-client ./client
+  - docker build -t tedmanson/multi-nginx ./nginx
+  - docker build -t tedmanson/multi-server ./server
+  - docker build -t tedmanson/multi-worker ./worker
+  # log into docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # take these and push to docker hub
+  - docker push tedmanson/multi-client
+  - docker push tedmanson/multi-nginx
+  - docker push tedmanson/multi-server
+  - docker push tedmanson/multi-worker
+
